@@ -40,7 +40,7 @@ io.use((socket, next) => {
         next();
     } else {
         socket.emit("invalid_User")
-        console.log(user,"haroish")
+        console.log(user, "haroish")
         new Error('Authentication error')
     }
 });
@@ -48,9 +48,29 @@ io.use((socket, next) => {
 io.on('connection', socketConnection(io));
 
 
-const PORT = process.env.PORT;
-httpServer.listen(PORT, (err) => {
-    if (err) console.log("Error in starting app", err);
-    else console.log("Server started at", PORT);
+const cluster = require("cluster")
+const os = require("os")
+let cpuCores = os.cpus().length
+// console.log("cpu length",cpuCores)
 
-});
+const PORT = process.env.PORT;
+
+if (cluster.isMaster) {
+    for (let i = 0; i < cpuCores; i++) {
+        cluster.fork()
+    }
+}
+else {
+    httpServer.listen(PORT, (err) => {
+        if (err) console.log("Error in starting app", err);
+        else console.log("Server started at", PORT,process.pid);
+
+    });
+
+}
+
+
+
+
+
+
